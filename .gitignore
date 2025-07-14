@@ -1,0 +1,19 @@
+# Compiled Go files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Coverage profiles
+*.out
+
+# IDE folders
+.idea/
+.vscode/
+
+# Local binary if built outside of Docker
+/backend/main
