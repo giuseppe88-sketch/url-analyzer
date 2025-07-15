@@ -49,3 +49,4 @@
 - use go(golang)
 - use gin as framework
 - use mySQL as data storage
+- use GORM as ORM

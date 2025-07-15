@@ -1,8 +1,31 @@
 version: "3.8"
+
 services:
   backend:
     build: ./backend
     ports:
       - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: crawler_db
+      DB_USER: user
+      DB_PASSWORD: password
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: "crawler_db"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "password"
+      MYSQL_ROOT_PASSWORD: "password"
+    ports:
+      - "3306:3306"
     volumes:
-      - ./backend:/app
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
