@@ -17,3 +17,6 @@
 
 # Local binary if built outside of Docker
 /backend/main
+
+# Environment variables
+.env
