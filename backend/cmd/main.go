@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/giuseppe88-sketch/url-analyzer/internal/api"
 	"github.com/giuseppe88-sketch/url-analyzer/internal/db"
 )
 
@@ -17,5 +18,9 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	// Register the new analysis endpoint
+	r.POST("/analyze", api.AnalyzeURL)
+
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
