@@ -31,11 +31,12 @@ const Dashboard: React.FC = () => {
     results,
     loading,
     error,
+    url,
     addResult,
     setLoading,
     setError,
-    url,
     setUrl,
+    deleteResult,
   } = useUrlStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -91,18 +92,28 @@ const Dashboard: React.FC = () => {
     },
     {
       field: "actions",
-      headerName: "Details",
+      headerName: "Actions",
       sortable: false,
-      width: 100,
+      width: 200,
       renderCell: (params) => (
-        <Button
-          component={RouterLink}
-          to={`/details/${params.id}`}
-          variant="contained"
-          size="small"
-        >
-          View
-        </Button>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
+            component={RouterLink}
+            to={`/details/${params.id}`}
+            variant="contained"
+            size="small"
+          >
+            View
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            size="small"
+            onClick={() => deleteResult(params.id as number)}
+          >
+            Delete
+          </Button>
+        </Box>
       ),
     },
   ];
