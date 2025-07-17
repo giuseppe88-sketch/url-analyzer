@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Container,
   Typography,
@@ -10,14 +10,15 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
 import { analyzeUrl } from "../api";
+import { useUrlStore } from "../store/urlStore";
 
-// Define a type for the analysis result to ensure type safety
+// This interface should be moved to a shared types file in a larger app
 interface AnalysisResult {
   ID: number;
   URL: string;
   Title: string;
   HTMLVersion: string;
-  HeadingsCount: string; // This is a JSON string
+  HeadingsCount: string;
   InternalLinks: number;
   ExternalLinks: number;
   InaccessibleLinks: number;
@@ -25,11 +26,17 @@ interface AnalysisResult {
 }
 
 const Dashboard: React.FC = () => {
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // State now holds an array of results for the history
-  const [results, setResults] = useState<AnalysisResult[]>([]);
+  // Get state and actions from the Zustand store
+  const {
+    results,
+    loading,
+    error,
+    addResult,
+    setLoading,
+    setError,
+    url,
+    setUrl,
+  } = useUrlStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,8 +49,7 @@ const Dashboard: React.FC = () => {
 
     try {
       const analysisResult = await analyzeUrl(url);
-      // Add the new result to the top of the history
-      setResults((prevResults) => [analysisResult, ...prevResults]);
+      addResult(analysisResult);
       setUrl(""); // Clear input on success
     } catch (err) {
       setError(
