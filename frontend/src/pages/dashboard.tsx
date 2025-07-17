@@ -32,11 +32,14 @@ const Dashboard: React.FC = () => {
     loading,
     error,
     url,
+    reanalyzing,
     addResult,
     setLoading,
     setError,
     setUrl,
     deleteResult,
+    updateResult,
+    setReanalyzing,
   } = useUrlStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -61,22 +64,36 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleReanalyze = async (id: number, urlToReanalyze: string) => {
+    setReanalyzing(id, true);
+    setError(null);
+    try {
+      const newResult = await analyzeUrl(urlToReanalyze);
+      // The backend assigns a new ID, so we update the result but keep the original ID for consistency in the grid
+      updateResult(id, { ...newResult, ID: id });
+    } catch (err) {
+      setError(`Failed to re-analyze ${urlToReanalyze}.`);
+    } finally {
+      setReanalyzing(id, false);
+    }
+  };
+
   // Define the columns for the DataGrid
   const columns: GridColDef[] = [
-    { field: "URL", headerName: "URL", flex: 1, minWidth: 200 },
-    { field: "Title", headerName: "Title", flex: 1, minWidth: 200 },
+    { field: "URL", headerName: "URL", flex: 1, minWidth: 150 },
+    { field: "Title", headerName: "Title", flex: 1, minWidth: 150 },
     { field: "HTMLVersion", headerName: "HTML Version", width: 120 },
     {
       field: "ExternalLinks",
       headerName: "External Links",
       type: "number",
-      width: 130,
+      width: 100,
     },
     {
       field: "InternalLinks",
       headerName: "Internal Links",
       type: "number",
-      width: 130,
+      width: 100,
     },
     {
       field: "InaccessibleLinks",
@@ -94,27 +111,57 @@ const Dashboard: React.FC = () => {
       field: "actions",
       headerName: "Actions",
       sortable: false,
-      width: 200,
-      renderCell: (params) => (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            component={RouterLink}
-            to={`/details/${params.id}`}
-            variant="contained"
-            size="small"
+      width: 300,
+      renderCell: (params) => {
+        const isReanalyzing = reanalyzing.includes(params.id as number);
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              width: "100%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
-            View
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
-            onClick={() => deleteResult(params.id as number)}
-          >
-            Delete
-          </Button>
-        </Box>
-      ),
+            <Button
+              component={RouterLink}
+              to={`/details/${params.id}`}
+              variant="contained"
+              size="small"
+              disabled={isReanalyzing}
+            >
+              View
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="small"
+              onClick={() =>
+                handleReanalyze(params.id as number, params.row.URL)
+              }
+              disabled={isReanalyzing}
+              sx={{ minWidth: 110 }}
+            >
+              {isReanalyzing ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Re-analyze"
+              )}
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              onClick={() => deleteResult(params.id as number)}
+              disabled={isReanalyzing}
+            >
+              Delete
+            </Button>
+          </Box>
+        );
+      },
     },
   ];
 
