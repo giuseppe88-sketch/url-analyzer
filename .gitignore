@@ -20,3 +20,5 @@
 
 # Environment variables
 .env
+
+rules.md

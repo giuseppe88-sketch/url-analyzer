@@ -1,14 +1,158 @@
-import React from "react";
+import React, { useState } from "react";
+import {
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  CircularProgress,
+} from "@mui/material";
+import { DataGrid, type GridColDef } from "@mui/x-data-grid";
+import { Link as RouterLink } from "react-router-dom";
+import { analyzeUrl } from "../api";
+
+// Define a type for the analysis result to ensure type safety
+interface AnalysisResult {
+  ID: number;
+  URL: string;
+  Title: string;
+  HTMLVersion: string;
+  HeadingsCount: string; // This is a JSON string
+  InternalLinks: number;
+  ExternalLinks: number;
+  InaccessibleLinks: number;
+  HasLoginForm: boolean;
+}
 
 const Dashboard: React.FC = () => {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // State now holds an array of results for the history
+  const [results, setResults] = useState<AnalysisResult[]>([]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!url) {
+      setError("Please enter a URL.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    try {
+      const analysisResult = await analyzeUrl(url);
+      // Add the new result to the top of the history
+      setResults((prevResults) => [analysisResult, ...prevResults]);
+      setUrl(""); // Clear input on success
+    } catch (err) {
+      setError(
+        "Failed to analyze the URL. Please check the console for details."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Define the columns for the DataGrid
+  const columns: GridColDef[] = [
+    { field: "URL", headerName: "URL", flex: 1, minWidth: 200 },
+    { field: "Title", headerName: "Title", flex: 1, minWidth: 200 },
+    { field: "HTMLVersion", headerName: "HTML Version", width: 120 },
+    {
+      field: "ExternalLinks",
+      headerName: "External Links",
+      type: "number",
+      width: 130,
+    },
+    {
+      field: "InternalLinks",
+      headerName: "Internal Links",
+      type: "number",
+      width: 130,
+    },
+    {
+      field: "InaccessibleLinks",
+      headerName: "Inaccessible Links",
+      type: "number",
+      width: 150,
+    },
+    {
+      field: "HasLoginForm",
+      headerName: "Login Form",
+      width: 120,
+      renderCell: (params) => (params.value ? "Yes" : "No"),
+    },
+    {
+      field: "actions",
+      headerName: "Details",
+      sortable: false,
+      width: 100,
+      renderCell: (params) => (
+        <Button
+          component={RouterLink}
+          to={`/details/${params.id}`}
+          variant="contained"
+          size="small"
+        >
+          View
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <div>
-      <h1>URL Analyzer Dashboard</h1>
-      <p>
-        This is where the URL submission form and analysis history will be
-        displayed.
-      </p>
-    </div>
+    <Container maxWidth="xl" sx={{ mt: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        URL Analyzer
+      </Typography>
+      <Box
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{ display: "flex", gap: 2, mb: 4 }}
+      >
+        <TextField
+          label="Enter URL to analyze"
+          variant="outlined"
+          fullWidth
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          disabled={loading}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={loading}
+          sx={{ minWidth: 120 }}
+        >
+          {loading ? <CircularProgress size={24} /> : "Analyze"}
+        </Button>
+      </Box>
+
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+
+      {results.length > 0 && (
+        <Box sx={{ height: 600, width: "100%" }}>
+          <DataGrid
+            rows={results}
+            columns={columns}
+            getRowId={(row) => row.ID}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 5 },
+              },
+            }}
+            pageSizeOptions={[5, 10]}
+            disableRowSelectionOnClick
+          />
+        </Box>
+      )}
+    </Container>
   );
 };
 

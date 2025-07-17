@@ -7,7 +7,6 @@
 - Use descriptive variable names with auxiliary verbs (e.g., `isLoading`, `hasError`).
 - Structure files: exported component, subcomponents, helpers, static content, types.
 - Use React 19 features
-- use feature-component project structure
 
 # Naming Conventions
 
