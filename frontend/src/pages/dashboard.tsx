@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   Container,
   Typography,
@@ -26,6 +26,8 @@ interface AnalysisResult {
 }
 
 const Dashboard: React.FC = () => {
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Get state and actions from the Zustand store
   const {
     results,
@@ -48,12 +50,20 @@ const Dashboard: React.FC = () => {
       setError("Please enter a URL.");
       return;
     }
+
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
     setError(null);
 
     try {
-      const analysisResult = await analyzeUrl(url);
-      addResult(analysisResult);
+      const analysisResult = await analyzeUrl(
+        url,
+        abortControllerRef.current.signal
+      );
+      // If the request was cancelled, analyzeUrl returns a non-resolving promise
+      // and this part of the code won't be reached.
+      addResult(analysisResult as AnalysisResult);
       setUrl(""); // Clear input on success
     } catch (err) {
       setError(
@@ -61,20 +71,34 @@ const Dashboard: React.FC = () => {
       );
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setLoading(false);
     }
   };
 
   const handleReanalyze = async (id: number, urlToReanalyze: string) => {
     setReanalyzing(id, true);
     setError(null);
+    abortControllerRef.current = new AbortController();
+
     try {
-      const newResult = await analyzeUrl(urlToReanalyze);
+      const newResult = await analyzeUrl(
+        urlToReanalyze,
+        abortControllerRef.current.signal
+      );
       // The backend assigns a new ID, so we update the result but keep the original ID for consistency in the grid
       updateResult(id, { ...newResult, ID: id });
     } catch (err) {
       setError(`Failed to re-analyze ${urlToReanalyze}.`);
     } finally {
       setReanalyzing(id, false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -87,24 +111,24 @@ const Dashboard: React.FC = () => {
       field: "ExternalLinks",
       headerName: "External Links",
       type: "number",
-      width: 100,
+      width: 90,
     },
     {
       field: "InternalLinks",
       headerName: "Internal Links",
       type: "number",
-      width: 100,
+      width: 90,
     },
     {
       field: "InaccessibleLinks",
       headerName: "Inaccessible Links",
       type: "number",
-      width: 150,
+      width: 90,
     },
     {
       field: "HasLoginForm",
       headerName: "Login Form",
-      width: 120,
+      width: 90,
       renderCell: (params) => (params.value ? "Yes" : "No"),
     },
     {
@@ -147,7 +171,7 @@ const Dashboard: React.FC = () => {
               {isReanalyzing ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                "Re-analyze"
+                "Rerun"
               )}
             </Button>
             <Button
@@ -183,15 +207,29 @@ const Dashboard: React.FC = () => {
           onChange={(e) => setUrl(e.target.value)}
           disabled={loading}
         />
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={loading}
-          sx={{ minWidth: 120 }}
-        >
-          {loading ? <CircularProgress size={24} /> : "Analyze"}
-        </Button>
+        {loading ? (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleStop}
+              sx={{ minWidth: 120 }}
+            >
+              Stop
+            </Button>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            sx={{ minWidth: 120 }}
+          >
+            Analyze
+          </Button>
+        )}
       </Box>
 
       {error && (
