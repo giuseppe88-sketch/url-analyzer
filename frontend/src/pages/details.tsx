@@ -15,6 +15,7 @@ import {
   Chip,
 } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
+import { HeadingsBreakdown } from "../components/details/HeadingsBreakdown";
 
 const DetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -169,22 +170,7 @@ const DetailsPage: React.FC = () => {
         </Grid>
 
         {/* Headings Breakdown */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: "100%" }}>
-            <Typography variant="h6" gutterBottom>
-              Headings Breakdown
-            </Typography>
-            <List dense>
-              {Object.entries(JSON.parse(HeadingsCount)).map(([tag, count]) => (
-                <ListItem key={tag}>
-                  <ListItemText
-                    primary={`${tag.toUpperCase()}: ${count as number}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
+        <HeadingsBreakdown headingsCount={HeadingsCount} />
       </Grid>
     </Container>
   );
