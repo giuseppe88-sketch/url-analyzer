@@ -1,6 +1,7 @@
 import { useRef } from "react";
-import { useUrlStore } from "../store/urlStore";
 import { analyzeUrl } from "../api";
+import { useUrlStore } from "../store/urlStore";
+import { type AnalysisResult } from "../types";
 
 export const useUrlActions = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -27,7 +28,7 @@ export const useUrlActions = () => {
     setError(null);
 
     try {
-      const analysisResult = await analyzeUrl(
+      const analysisResult: AnalysisResult = await analyzeUrl(
         url,
         abortControllerRef.current.signal
       );
@@ -46,7 +47,7 @@ export const useUrlActions = () => {
   const handleReanalyze = async (id: number, urlToReanalyze: string) => {
     setReanalyzing(id, true);
     try {
-      const newResult = await analyzeUrl(urlToReanalyze);
+      const newResult: AnalysisResult = await analyzeUrl(urlToReanalyze);
       updateResult(id, newResult);
     } catch (err) {
       // Handle error appropriately, maybe set a specific error message

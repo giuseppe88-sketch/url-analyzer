@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { type AnalysisResult } from "../types";
 
 // The backend is running on port 8080, and we've configured CORS
 const apiClient = axios.create({
@@ -17,8 +18,7 @@ const apiClient = axios.create({
 export const analyzeUrl = async (
   url: string,
   signal?: AbortSignal
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> => {
+): Promise<AnalysisResult> => {
   try {
     const response = await apiClient.post(
       "/analyze",

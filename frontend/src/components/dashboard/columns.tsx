@@ -2,13 +2,7 @@ import React from "react";
 import { Box, Button, CircularProgress } from "@mui/material";
 import { type GridColDef, type GridRenderCellParams } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
-import { type AnalysisResult } from "../../store/urlStore";
-
-interface GetColumnsParams {
-  reanalyzing: number[];
-  handleReanalyze: (id: number, url: string) => void;
-  handleDelete: (id: number) => void;
-}
+import { type AnalysisResult, type GetColumnsParams } from "../../types";
 
 export const getColumns = ({
   reanalyzing,
@@ -29,7 +23,7 @@ export const getColumns = ({
           (sum: number, count: any) => sum + count,
           0
         );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         return 0;
       }

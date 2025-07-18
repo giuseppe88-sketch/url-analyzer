@@ -1,13 +1,6 @@
 import React from "react";
 import { TextField, Button, Box, CircularProgress } from "@mui/material";
-
-interface AnalysisFormProps {
-  url: string;
-  loading: boolean;
-  setUrl: (url: string) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
-}
+import { type AnalysisFormProps } from "../../types";
 
 export const AnalysisForm: React.FC<AnalysisFormProps> = ({
   url,
