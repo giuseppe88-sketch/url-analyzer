@@ -26,10 +26,10 @@ This project is designed to showcase a clean, scalable, and well-documented code
 
 | Category       | Technology                                    |
 | -------------- | --------------------------------------------- |
-| **Backend**    | Go, Gorilla Mux (Router), Goquery (Scraping)  |
+| **Backend**    | Go, Gin, Goquery (Scraping)  |
 | **Frontend**   | React, TypeScript, Vite, Zustand (State Mgmt) |
 | **UI Library** | Material-UI (MUI)                             |
-| **Database**   | PostgreSQL                                    |
+| **Database**   | MySQL                                    |
 | **Container**  | Docker, Docker Compose                        |
 
 ---
