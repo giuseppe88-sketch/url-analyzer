@@ -5,12 +5,11 @@ import {
   TextField,
   Button,
   Box,
-  CircularProgress,
 } from "@mui/material";
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { Link as RouterLink } from "react-router-dom";
-import { useUrlStore, type AnalysisResult } from "../store/urlStore";
+import { DataGrid } from "@mui/x-data-grid";
+import { useUrlStore } from "../store/urlStore";
 import { useUrlActions } from "../hooks/useUrlActions";
+import { getColumns } from "../components/dashboard/columns";
 
 const Dashboard: React.FC = () => {
   const { results, loading, reanalyzing, error, url, setUrl } = useUrlStore();
@@ -18,104 +17,7 @@ const Dashboard: React.FC = () => {
   const { handleAnalyze, handleReanalyze, handleDelete, handleCancel } =
     useUrlActions();
 
-  // Define the columns for the DataGrid
-  const columns: GridColDef<AnalysisResult>[] = [
-    { field: "URL", headerName: "URL", flex: 1, minWidth: 150 },
-    { field: "Title", headerName: "Title", width: 150 },
-    {
-      field: "HeadingsCount",
-      headerName: "Headings",
-      width: 80,
-      renderCell: (params) => {
-        try {
-          const counts = JSON.parse(params.value as string);
-          return Object.values(counts).reduce(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (sum: number, count: any) => sum + count,
-            0
-          );
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
-          return 0;
-        }
-      },
-    },
-    { field: "HTMLVersion", headerName: "HTML Version", width: 70 },
-    {
-      field: "ExternalLinks",
-      headerName: "External Links",
-      type: "number",
-      width: 70,
-    },
-    {
-      field: "InternalLinks",
-      headerName: "Internal Links",
-      type: "number",
-      width: 70,
-    },
-    {
-      field: "InaccessibleLinks",
-      headerName: "Inaccessible Links",
-      width: 70,
-      renderCell: (params) => params.value.length,
-    },
-    {
-      field: "HasLoginForm",
-      headerName: "Login Form",
-      width: 70,
-      renderCell: (params) => (params.value ? "Yes" : "No"),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      sortable: false,
-      width: 300,
-      renderCell: (params) => {
-        const isReanalyzing = reanalyzing.includes(params.id as number);
-        return (
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Button
-              component={RouterLink}
-              to={`/details/${params.id}`}
-              variant="contained"
-              size="small"
-              disabled={isReanalyzing}
-            >
-              View
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() =>
-                handleReanalyze(params.id as number, params.row.URL)
-              }
-              disabled={isReanalyzing}
-              startIcon={isReanalyzing ? <CircularProgress size={20} /> : null}
-            >
-              {isReanalyzing ? "Rerunning" : "Rerun"}
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={() => handleDelete(params.id as number)}
-            >
-              Delete
-            </Button>
-          </Box>
-        );
-      },
-    },
-  ];
+  const columns = getColumns({ reanalyzing, handleReanalyze, handleDelete });
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
