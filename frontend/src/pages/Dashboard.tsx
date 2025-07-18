@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Typography, Box } from "@mui/material";
+import { Container, Typography, Box, Paper } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useUrlStore } from "../store/urlStore";
 import { useUrlActions } from "../hooks/useUrlActions";
@@ -15,40 +15,47 @@ const Dashboard: React.FC = () => {
   const columns = getColumns({ reanalyzing, handleReanalyze, handleDelete });
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        URL Analyzer
-      </Typography>
-      <AnalysisForm
-        url={url}
-        loading={loading}
-        setUrl={setUrl}
-        onSubmit={handleAnalyze}
-        onCancel={handleCancel}
-      />
+    <Container maxWidth="lg" sx={{ my: 4 }}>
+      <Box sx={{ mb: 4, textAlign: "center" }}>
+        <Typography variant="h3" component="h1" gutterBottom>
+          URL Analysis Dashboard
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          Enter a URL to analyze its structure and SEO metrics.
+        </Typography>
+      </Box>
+
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <AnalysisForm
+          url={url}
+          loading={loading}
+          setUrl={setUrl}
+          onSubmit={handleAnalyze}
+          onCancel={handleCancel}
+        />
+      </Paper>
 
       {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
+        <Typography color="error" sx={{ mb: 2, textAlign: "center" }}>
           {error}
         </Typography>
       )}
 
-      {results.length > 0 && (
-        <Box sx={{ height: 600, width: "100%" }}>
-          <DataGrid
-            rows={results}
-            columns={columns}
-            getRowId={(row) => row.ID}
-            initialState={{
-              pagination: {
-                paginationModel: { page: 0, pageSize: 10 },
-              },
-            }}
-            pageSizeOptions={[5, 10]}
-            disableRowSelectionOnClick
-          />
-        </Box>
-      )}
+      <Paper sx={{ height: 600, width: "100%" }}>
+        <DataGrid
+          rows={results}
+          columns={columns}
+          getRowId={(row) => row.ID}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 },
+            },
+          }}
+          pageSizeOptions={[5, 10, 20]}
+          disableRowSelectionOnClick
+          sx={{ border: 0 }}
+        />
+      </Paper>
     </Container>
   );
 };
