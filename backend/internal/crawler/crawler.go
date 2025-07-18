@@ -98,7 +98,7 @@ func getHeadingsCount(doc *goquery.Document) (string, error) {
 }
 
 // getLinkCounts finds all links, categorizes them, and checks their accessibility concurrently.
-func getLinkCounts(doc *goquery.Document, baseURL *url.URL) (internal, external, inaccessible int) {
+func getLinkCounts(doc *goquery.Document, baseURL *url.URL) (internal, external int, inaccessibleLinks []models.InaccessibleLink) {
 	var wg sync.WaitGroup
 	mu := &sync.Mutex{}
 
@@ -133,13 +133,23 @@ func getLinkCounts(doc *goquery.Document, baseURL *url.URL) (internal, external,
 
 			// Use HEAD request for efficiency
 			res, err := http.Head(u)
-			if err != nil || (res.StatusCode >= 400 && res.StatusCode < 600) {
-				mu.Lock()
-				inaccessible++
-				mu.Unlock()
-			}
 			if res != nil {
-				res.Body.Close()
+				defer res.Body.Close()
+			}
+
+			if err != nil {
+				// Network error or other issue making the request
+				mu.Lock()
+				inaccessibleLinks = append(inaccessibleLinks, models.InaccessibleLink{Link: u, Status: 0}) // 0 for network error
+				mu.Unlock()
+				return
+			}
+
+			if res.StatusCode >= 400 && res.StatusCode < 600 {
+				// HTTP error status
+				mu.Lock()
+				inaccessibleLinks = append(inaccessibleLinks, models.InaccessibleLink{Link: u, Status: res.StatusCode})
+				mu.Unlock()
 			}
 		}(linkURL.String())
 	})
@@ -148,7 +158,7 @@ func getLinkCounts(doc *goquery.Document, baseURL *url.URL) (internal, external,
 	return
 }
 
-// hasLoginForm checks for the presence of a form with a password input field.
+// hasLoginForm checks for the presence of a form containing a password input.
 func hasLoginForm(doc *goquery.Document) bool {
 	found := false
 	doc.Find("form").Each(func(i int, s *goquery.Selection) {

@@ -3,7 +3,12 @@ import { persist } from "zustand/middleware";
 
 // This interface is duplicated from the dashboard, but in a real app
 // it would live in a shared types file.
-interface AnalysisResult {
+interface InaccessibleLink {
+  url: string;
+  status: number;
+}
+
+export interface AnalysisResult {
   ID: number;
   URL: string;
   Title: string;
@@ -11,7 +16,7 @@ interface AnalysisResult {
   HeadingsCount: string;
   InternalLinks: number;
   ExternalLinks: number;
-  InaccessibleLinks: number;
+  InaccessibleLinks: InaccessibleLink[];
   HasLoginForm: boolean;
 }
 

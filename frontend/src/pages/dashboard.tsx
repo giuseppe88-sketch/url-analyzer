@@ -10,20 +10,9 @@ import {
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
 import { analyzeUrl } from "../api";
-import { useUrlStore } from "../store/urlStore";
+import { useUrlStore, type AnalysisResult } from "../store/urlStore";
 
 // This interface should be moved to a shared types file in a larger app
-interface AnalysisResult {
-  ID: number;
-  URL: string;
-  Title: string;
-  HTMLVersion: string;
-  HeadingsCount: string;
-  InternalLinks: number;
-  ExternalLinks: number;
-  InaccessibleLinks: number;
-  HasLoginForm: boolean;
-}
 
 const Dashboard: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -63,8 +52,9 @@ const Dashboard: React.FC = () => {
       );
       // If the request was cancelled, analyzeUrl returns a non-resolving promise
       // and this part of the code won't be reached.
-      addResult(analysisResult as AnalysisResult);
+      addResult(analysisResult);
       setUrl(""); // Clear input on success
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError(
         "Failed to analyze the URL. Please check the console for details."
@@ -94,6 +84,7 @@ const Dashboard: React.FC = () => {
       );
       // The backend assigns a new ID, so we update the result but keep the original ID for consistency in the grid
       updateResult(id, { ...newResult, ID: id });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError(`Failed to re-analyze ${urlToReanalyze}.`);
     } finally {
@@ -103,32 +94,48 @@ const Dashboard: React.FC = () => {
   };
 
   // Define the columns for the DataGrid
-  const columns: GridColDef[] = [
+  const columns: GridColDef<AnalysisResult>[] = [
     { field: "URL", headerName: "URL", flex: 1, minWidth: 150 },
-    { field: "Title", headerName: "Title", flex: 1, minWidth: 150 },
-    { field: "HTMLVersion", headerName: "HTML Version", width: 120 },
+    { field: "Title", headerName: "Title", width: 150 },
+    {
+      field: "HeadingsCount",
+      headerName: "Headings",
+      width: 80,
+      renderCell: (params) => {
+        try {
+          const counts = JSON.parse(params.value as string);
+          return Object.values(counts).reduce(
+            (sum: number, count: any) => sum + count,
+            0
+          );
+        } catch (e) {
+          return 0;
+        }
+      },
+    },
+    { field: "HTMLVersion", headerName: "HTML Version", width: 70 },
     {
       field: "ExternalLinks",
       headerName: "External Links",
       type: "number",
-      width: 90,
+      width: 70,
     },
     {
       field: "InternalLinks",
       headerName: "Internal Links",
       type: "number",
-      width: 90,
+      width: 70,
     },
     {
       field: "InaccessibleLinks",
       headerName: "Inaccessible Links",
-      type: "number",
-      width: 90,
+      width: 70,
+      renderCell: (params) => params.value.length,
     },
     {
       field: "HasLoginForm",
       headerName: "Login Form",
-      width: 90,
+      width: 70,
       renderCell: (params) => (params.value ? "Yes" : "No"),
     },
     {
@@ -246,7 +253,7 @@ const Dashboard: React.FC = () => {
             getRowId={(row) => row.ID}
             initialState={{
               pagination: {
-                paginationModel: { page: 0, pageSize: 5 },
+                paginationModel: { page: 0, pageSize: 10 },
               },
             }}
             pageSizeOptions={[5, 10]}
