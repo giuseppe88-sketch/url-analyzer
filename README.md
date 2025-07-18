@@ -61,14 +61,14 @@ Follow these instructions to get the project up and running on your local machin
 
 3.  **Access the application:**
 
-    - The **Frontend** will be available at [http://localhost:5173](http://localhost:5173)
+    - The **Frontend** will be available at [http://localhost:5173] or [http://localhost:3000](http://localhost:3000)
     - The **Backend API** will be running at `http://localhost:8080`
 
 ---
 
 ## 📝 Usage
 
-1.  Open your web browser and navigate to `http://localhost:5173`.
+1.  Open your web browser and navigate to `http://localhost:5173` or `http://localhost:3000`.
 2.  Enter a valid URL (e.g., `https://google.com`) into the input field.
 3.  Click the "Analyze" button.
 4.  View the results as they appear in the data grid below.
