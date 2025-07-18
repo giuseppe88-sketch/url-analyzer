@@ -1,15 +1,10 @@
 import React from "react";
-import {
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Box,
-} from "@mui/material";
+import { Container, Typography, Box } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useUrlStore } from "../store/urlStore";
 import { useUrlActions } from "../hooks/useUrlActions";
 import { getColumns } from "../components/dashboard/columns";
+import { AnalysisForm } from "../components/dashboard/AnalysisForm";
 
 const Dashboard: React.FC = () => {
   const { results, loading, reanalyzing, error, url, setUrl } = useUrlStore();
@@ -24,36 +19,13 @@ const Dashboard: React.FC = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         URL Analyzer
       </Typography>
-      <Box
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleAnalyze();
-        }}
-        sx={{ display: "flex", gap: 2, mb: 4 }}
-      >
-        <TextField
-          label="Enter URL to analyze"
-          variant="outlined"
-          fullWidth
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          disabled={loading}
-        />
-        {loading ? (
-          <Button variant="contained" color="error" onClick={handleCancel}>
-            Stop
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            onClick={handleAnalyze}
-            disabled={loading}
-          >
-            Analyze
-          </Button>
-        )}
-      </Box>
+      <AnalysisForm
+        url={url}
+        loading={loading}
+        setUrl={setUrl}
+        onSubmit={handleAnalyze}
+        onCancel={handleCancel}
+      />
 
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
