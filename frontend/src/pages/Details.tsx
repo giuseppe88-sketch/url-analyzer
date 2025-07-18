@@ -6,7 +6,6 @@ import {
   Typography,
   Paper,
   Grid,
-  Box,
   List,
   ListItem,
   ListItemText,
@@ -14,8 +13,9 @@ import {
   Button,
   Chip,
 } from "@mui/material";
-import { PieChart } from "@mui/x-charts/PieChart";
 import { HeadingsBreakdown } from "../components/details/HeadingsBreakdown";
+import { LinkAnalysisChart } from "../components/details/LinkAnalysisChart";
+import { AnalysisNotFound } from "../components/details/AnalysisNotFound";
 
 const DetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,25 +25,7 @@ const DetailsPage: React.FC = () => {
   const analysisResult = results.find((r) => r.ID === Number(id));
 
   if (!analysisResult) {
-    return (
-      <Container maxWidth="md" sx={{ mt: 4, textAlign: "center" }}>
-        <Typography variant="h4" gutterBottom>
-          Analysis Not Found
-        </Typography>
-        <Typography>
-          No analysis result could be found for this ID. It might have been
-          deleted or the link is incorrect.
-        </Typography>
-        <Button
-          component={RouterLink}
-          to="/"
-          variant="contained"
-          sx={{ mt: 2 }}
-        >
-          Back to Dashboard
-        </Button>
-      </Container>
-    );
+    return <AnalysisNotFound />;
   }
 
   const {
@@ -56,11 +38,6 @@ const DetailsPage: React.FC = () => {
     InaccessibleLinks,
     HeadingsCount,
   } = analysisResult;
-
-  const linkData = [
-    { id: 0, value: InternalLinks, label: "Internal Links", color: "#0288d1" },
-    { id: 1, value: ExternalLinks, label: "External Links", color: "#f57c00" },
-  ];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -97,40 +74,10 @@ const DetailsPage: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Link Analysis Chart */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: "100%" }}>
-            <Typography variant="h6" gutterBottom>
-              Internal vs. External Links
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: 300,
-              }}
-            >
-              <PieChart
-                series={[
-                  {
-                    data: linkData,
-                    innerRadius: 50, // This makes it a donut chart
-                    outerRadius: 100,
-                    paddingAngle: 2,
-                    cornerRadius: 5,
-                    highlightScope: { faded: "global", highlighted: "item" },
-                    faded: {
-                      innerRadius: 30,
-                      additionalRadius: -30,
-                      color: "gray",
-                    },
-                  },
-                ]}
-                height={300}
-              />
-            </Box>
-          </Paper>
-        </Grid>
+        <LinkAnalysisChart
+          internalLinks={InternalLinks}
+          externalLinks={ExternalLinks}
+        />
 
         {/* Inaccessible Links List */}
         <Grid item xs={12} md={6}>

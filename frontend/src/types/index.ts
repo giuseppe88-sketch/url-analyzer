@@ -44,4 +44,18 @@ export interface AnalysisFormProps {
   setUrl: (url: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
+  handleCancel?: () => void;
+}
+
+/*
+ * Details Page Component Props
+ */
+
+export interface LinkAnalysisChartProps {
+  internalLinks: number;
+  externalLinks: number;
+}
+
+export interface HeadingsBreakdownProps {
+  headingsCount: string; // JSON string
 }

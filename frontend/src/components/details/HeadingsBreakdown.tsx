@@ -7,10 +7,7 @@ import {
   ListItemText,
   Grid,
 } from "@mui/material";
-
-interface HeadingsBreakdownProps {
-  headingsCount: string; // JSON string
-}
+import { type HeadingsBreakdownProps } from "../../types";
 
 export const HeadingsBreakdown: React.FC<HeadingsBreakdownProps> = ({
   headingsCount,
