@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import {
   Container,
   Typography,
@@ -9,89 +9,14 @@ import {
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Link as RouterLink } from "react-router-dom";
-import { analyzeUrl } from "../api";
 import { useUrlStore, type AnalysisResult } from "../store/urlStore";
-
-// This interface should be moved to a shared types file in a larger app
+import { useUrlActions } from "../hooks/useUrlActions";
 
 const Dashboard: React.FC = () => {
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const { results, loading, reanalyzing, error, url, setUrl } = useUrlStore();
 
-  // Get state and actions from the Zustand store
-  const {
-    results,
-    loading,
-    error,
-    url,
-    reanalyzing,
-    addResult,
-    setLoading,
-    setError,
-    setUrl,
-    deleteResult,
-    updateResult,
-    setReanalyzing,
-  } = useUrlStore();
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!url) {
-      setError("Please enter a URL.");
-      return;
-    }
-
-    abortControllerRef.current = new AbortController();
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const analysisResult = await analyzeUrl(
-        url,
-        abortControllerRef.current.signal
-      );
-      // If the request was cancelled, analyzeUrl returns a non-resolving promise
-      // and this part of the code won't be reached.
-      addResult(analysisResult);
-      setUrl(""); // Clear input on success
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      setError(
-        "Failed to analyze the URL. Please check the console for details."
-      );
-    } finally {
-      setLoading(false);
-      abortControllerRef.current = null;
-    }
-  };
-
-  const handleStop = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      setLoading(false);
-    }
-  };
-
-  const handleReanalyze = async (id: number, urlToReanalyze: string) => {
-    setReanalyzing(id, true);
-    setError(null);
-    abortControllerRef.current = new AbortController();
-
-    try {
-      const newResult = await analyzeUrl(
-        urlToReanalyze,
-        abortControllerRef.current.signal
-      );
-      // The backend assigns a new ID, so we update the result but keep the original ID for consistency in the grid
-      updateResult(id, { ...newResult, ID: id });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      setError(`Failed to re-analyze ${urlToReanalyze}.`);
-    } finally {
-      setReanalyzing(id, false);
-      abortControllerRef.current = null;
-    }
-  };
+  const { handleAnalyze, handleReanalyze, handleDelete, handleCancel } =
+    useUrlActions();
 
   // Define the columns for the DataGrid
   const columns: GridColDef<AnalysisResult>[] = [
@@ -105,9 +30,11 @@ const Dashboard: React.FC = () => {
         try {
           const counts = JSON.parse(params.value as string);
           return Object.values(counts).reduce(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (sum: number, count: any) => sum + count,
             0
           );
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
           return 0;
         }
@@ -166,27 +93,21 @@ const Dashboard: React.FC = () => {
               View
             </Button>
             <Button
-              variant="contained"
-              color="secondary"
+              variant="outlined"
               size="small"
               onClick={() =>
                 handleReanalyze(params.id as number, params.row.URL)
               }
               disabled={isReanalyzing}
-              sx={{ minWidth: 110 }}
+              startIcon={isReanalyzing ? <CircularProgress size={20} /> : null}
             >
-              {isReanalyzing ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Rerun"
-              )}
+              {isReanalyzing ? "Rerunning" : "Rerun"}
             </Button>
             <Button
               variant="contained"
               color="error"
               size="small"
-              onClick={() => deleteResult(params.id as number)}
-              disabled={isReanalyzing}
+              onClick={() => handleDelete(params.id as number)}
             >
               Delete
             </Button>
@@ -203,7 +124,10 @@ const Dashboard: React.FC = () => {
       </Typography>
       <Box
         component="form"
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleAnalyze();
+        }}
         sx={{ display: "flex", gap: 2, mb: 4 }}
       >
         <TextField
@@ -215,24 +139,14 @@ const Dashboard: React.FC = () => {
           disabled={loading}
         />
         {loading ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleStop}
-              sx={{ minWidth: 120 }}
-            >
-              Stop
-            </Button>
-            <CircularProgress size={24} />
-          </Box>
+          <Button variant="contained" color="error" onClick={handleCancel}>
+            Stop
+          </Button>
         ) : (
           <Button
-            type="submit"
             variant="contained"
-            color="primary"
+            onClick={handleAnalyze}
             disabled={loading}
-            sx={{ minWidth: 120 }}
           >
             Analyze
           </Button>

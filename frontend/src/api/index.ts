@@ -16,7 +16,8 @@ const apiClient = axios.create({
  */
 export const analyzeUrl = async (
   url: string,
-  signal: AbortSignal
+  signal?: AbortSignal
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   try {
     const response = await apiClient.post(
@@ -35,7 +36,6 @@ export const analyzeUrl = async (
       // Return a promise that never resolves to stop the calling function
       return new Promise(() => {});
     }
-    console.error("API Error:", error.response?.data || error.message);
     throw error;
   }
 };
